@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: talentpulse-api
+    env: node
+    buildCommand: npm run build
+    startCommand: npm run prisma:migrate && npm start
+    healthCheckPath: /v1/health
+    healthCheckTimeout: 300
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+    autoDeploy: true
+    disk:
+      name: talentpulse-api-disk
+      mountPath: /app
+      sizeGB: 10
+
+databases:
+  - name: talentpulse-postgres
+    engine: postgres
+    version: 16
+
+  - name: talentpulse-redis
+    engine: redis
+    version: 7

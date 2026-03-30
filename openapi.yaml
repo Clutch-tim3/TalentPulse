@@ -1,0 +1,1652 @@
+openapi: 3.0.3
+info:
+  title: TalentPulse API
+  description: Real-time labour market intelligence API. Salary benchmarks, skill demand trends, role intelligence, company hiring data, skill gap analysis — all in one REST API.
+  version: 1.0.0
+  contact:
+    name: TalentPulse Support
+    email: support@talentpulse.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+externalDocs:
+  description: TalentPulse API Documentation
+  url: https://rapidapi.com/talentpulse/api/talentpulse-api
+servers:
+  - url: https://api.talentpulse.com/v1
+    description: Production server
+  - url: http://localhost:3000/v1
+    description: Local development server
+
+tags:
+  - name: Salary
+    description: Salary benchmarking endpoints
+  - name: Skills
+    description: Skill demand and gap analysis endpoints
+  - name: Roles
+    description: Role intelligence endpoints
+  - name: Company
+    description: Company hiring profile endpoints
+  - name: Market
+    description: Market overview endpoints
+  - name: Jobs
+    description: Job search endpoints
+  - name: Titles
+    description: Job title normalization endpoints
+  - name: Health
+    description: API health and status endpoints
+
+paths:
+  /salary/benchmark:
+    get:
+      tags: [Salary]
+      summary: Get salary benchmark for a specific role and location
+      description: Returns comprehensive salary benchmark data including percentiles, total compensation, location context, market trends, and skills premium for any job role and location.
+      parameters:
+        - name: job_title
+          in: query
+          required: true
+          description: Job title to get salary benchmark for
+          schema:
+            type: string
+            example: "Senior Software Engineer"
+        - name: location
+          in: query
+          required: true
+          description: Location for salary benchmark
+          schema:
+            type: string
+            example: "San Francisco, CA"
+        - name: experience_level
+          in: query
+          description: "Experience level (default: mid)"
+          schema:
+            type: string
+            enum: [entry, mid, senior, lead, principal, executive]
+            default: mid
+        - name: skills
+          in: query
+          description: Comma-separated skills for precision matching
+          schema:
+            type: string
+            example: "React,TypeScript,Node.js"
+        - name: industry
+          in: query
+          description: Industry context for more accurate benchmarks
+          schema:
+            type: string
+            example: "fintech"
+        - name: company_size
+          in: query
+          description: Company size category
+          schema:
+            type: string
+            enum: [startup, scaleup, enterprise]
+        - name: include_equity
+          in: query
+          description: "Include equity estimates (default: false)"
+          schema:
+            type: boolean
+            default: false
+        - name: include_benefits
+          in: query
+          description: "Include benefits intelligence (default: false)"
+          schema:
+            type: boolean
+            default: false
+        - name: currency
+          in: query
+          description: ISO 4217 currency code (default from location)
+          schema:
+            type: string
+            default: USD
+            example: "USD"
+      responses:
+        "200":
+          description: Salary benchmark data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: "#/components/schemas/SalaryBenchmark"
+                  meta:
+                    $ref: "#/components/schemas/ApiMeta"
+
+  /salary/compare:
+    get:
+      tags: [Salary]
+      summary: Compare salaries across multiple locations
+      description: Returns salary comparisons across multiple locations including cost of living adjustments and purchasing power parity analysis.
+      parameters:
+        - name: job_title
+          in: query
+          required: true
+          description: Job title to compare
+          schema:
+            type: string
+            example: "Product Manager"
+        - name: locations
+          in: query
+          required: true
+          description: Comma-separated list of locations to compare
+          schema:
+            type: string
+            example: "New York,San Francisco,Austin,London,Berlin,Remote"
+        - name: experience_level
+          in: query
+          description: "Experience level (default: mid)"
+          schema:
+            type: string
+            enum: [entry, mid, senior, lead, principal, executive]
+            default: mid
+        - name: currency
+          in: query
+          description: "Output currency (default: USD)"
+          schema:
+            type: string
+            default: USD
+            example: "USD"
+      responses:
+        "200":
+          description: Salary comparison data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: "#/components/schemas/SalaryComparison"
+                  meta:
+                    $ref: "#/components/schemas/ApiMeta"
+
+  /salary/evaluate:
+    post:
+      tags: [Salary]
+      summary: Evaluate a salary offer against market benchmarks
+      description: Takes a specific job offer and evaluates it against market benchmarks including negotiation intelligence.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SalaryEvaluationRequest"
+      responses:
+        "200":
+          description: Salary offer evaluation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: "#/components/schemas/SalaryEvaluationResponse"
+                  meta:
+                    $ref: "#/components/schemas/ApiMeta"
+
+  /skills/demand:
+    get:
+      tags: [Skills]
+      summary: Get real-time skill demand intelligence
+      description: Returns normalized demand scores, trend data, salary premiums, and related skills for any set of skills.
+      parameters:
+        - name: skills
+          in: query
+          required: true
+          description: Comma-separated list of skills
+          schema:
+            type: string
+            example: "React,Vue,Angular,Svelte"
+        - name: location
+          in: query
+          description: "Location filter (default: global)"
+          schema:
+            type: string
+            default: global
+            example: "global"
+        - name: job_category
+          in: query
+          description: Job category filter
+          schema:
+            type: string
+            enum:
+              [
+                engineering,
+                data,
+                product,
+                design,
+                marketing,
+                finance,
+                operations,
+                all,
+              ]
+        - name: timeframe
+          in: query
+          description: "Timeframe for trend analysis (default: 90d)"
+          schema:
+            type: string
+            enum: [30d, 90d, 6m, 1y]
+            default: 90d
+      responses:
+        "200":
+          description: Skill demand data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: "#/components/schemas/SkillDemand"
+                  meta:
+                    $ref: "#/components/schemas/ApiMeta"
+
+  /skills/trending:
+    get:
+      tags: [Skills]
+      summary: Get trending skills with growth rates
+      description: Returns skills that are surging in demand or declining with detailed analysis of why and hiring companies.
+      parameters:
+        - name: category
+          in: query
+          description: "Skill category filter (default: all)"
+          schema:
+            type: string
+            enum:
+              [
+                all,
+                engineering,
+                data_ai,
+                cloud,
+                product,
+                design,
+                finance,
+                marketing,
+                legal,
+              ]
+            default: all
+        - name: location
+          in: query
+          description: "Location filter (default: global)"
+          schema:
+            type: string
+            default: global
+            example: "global"
+        - name: trend_direction
+          in: query
+          description: "Trend direction filter (default: rising)"
+          schema:
+            type: string
+            enum: [rising, declining, both]
+            default: rising
+        - name: limit
+          in: query
+          description: "Maximum number of skills to return (default: 20)"
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 20
+        - name: timeframe
+          in: query
+          description: "Timeframe for trend analysis (default: 90d)"
+          schema:
+            type: string
+            enum: [30d, 90d]
+            default: 90d
+      responses:
+        "200":
+          description: Trending skills data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: "#/components/schemas/TrendingSkills"
+                  meta:
+                    $ref: "#/components/schemas/ApiMeta"
+
+  /skills/gap-analysis:
+    post:
+      tags: [Skills]
+      summary: AI-powered skill gap analysis for career transitions
+      description: Analyzes current skills against a target role and provides a prioritized learning path with salary impact and job market data.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SkillGapAnalysisRequest"
+      responses:
+        "200":
+          description: Skill gap analysis
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: "#/components/schemas/SkillGapAnalysisResponse"
+                  meta:
+                    $ref: "#/components/schemas/ApiMeta"
+
+  /roles/intelligence:
+    get:
+      tags: [Roles]
+      summary: Get deep intelligence on any job role
+      description: Returns comprehensive role intelligence including responsibilities, skills, career paths, market outlook, and salary data.
+      parameters:
+        - name: job_title
+          in: query
+          required: true
+          description: Job title to research
+          schema:
+            type: string
+            example: "Staff Engineer"
+        - name: include_career_paths
+          in: query
+          description: "Include career progression paths (default: true)"
+          schema:
+            type: boolean
+            default: true
+        - name: include_skills
+          in: query
+          description: "Include required/nice-to-have skills (default: true)"
+          schema:
+            type: boolean
+            default: true
+        - name: include_market
+          in: query
+          description: "Include market outlook (default: true)"
+          schema:
+            type: boolean
+            default: true
+        - name: location
+          in: query
+          description: Optional location context
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Role intelligence data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: "#/components/schemas/RoleIntelligence"
+                  meta:
+                    $ref: "#/components/schemas/ApiMeta"
+
+  /company/hiring:
+    get:
+      tags: [Company]
+      summary: Get company hiring intelligence and talent signals
+      description: Returns hiring profile including open roles, department breakdown, seniority distribution, tech stack signals, and talent intelligence.
+      parameters:
+        - name: company
+          in: query
+          required: true
+          description: Company name or domain to get hiring profile for
+          schema:
+            type: string
+            example: "Stripe"
+        - name: include_open_roles
+          in: query
+          description: "Include snapshot of open roles (default: false)"
+          schema:
+            type: boolean
+            default: false
+        - name: include_tech_stack
+          in: query
+          description: "Infer tech stack from job postings (default: true)"
+          schema:
+            type: boolean
+            default: true
+      responses:
+        "200":
+          description: Company hiring profile
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: "#/components/schemas/CompanyHiringProfile"
+                  meta:
+                    $ref: "#/components/schemas/ApiMeta"
+
+  /company/compare:
+    get:
+      tags: [Company]
+      summary: Compare hiring profiles of multiple companies
+      description: Compares hiring velocity, salary benchmarks, tech stack, and talent intelligence for multiple companies.
+      parameters:
+        - name: companies
+          in: query
+          required: true
+          description: Comma-separated list of companies to compare
+          schema:
+            type: string
+            example: "Stripe,Adyen,Braintree,Square,Checkout.com"
+        - name: focus
+          in: query
+          description: "Comparison focus area (default: all)"
+          schema:
+            type: string
+            enum: [salary, growth, tech_stack, culture, all]
+            default: all
+      responses:
+        "200":
+          description: Company comparison data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: "#/components/schemas/CompanyComparison"
+                  meta:
+                    $ref: "#/components/schemas/ApiMeta"
+
+  /market/overview:
+    get:
+      tags: [Market]
+      summary: Get labour market overview for a sector or location
+      description: Returns comprehensive market overview including hiring activity, top growing/declining roles, salary trends, and macro talent market signals.
+      parameters:
+        - name: sector
+          in: query
+          description: "Industry sector filter (default: all)"
+          schema:
+            type: string
+            enum:
+              [
+                tech,
+                finance,
+                healthcare,
+                legal,
+                marketing,
+                engineering,
+                operations,
+                all,
+              ]
+            default: all
+        - name: location
+          in: query
+          description: "Location filter (default: global)"
+          schema:
+            type: string
+            default: global
+            example: "global"
+        - name: include_forecast
+          in: query
+          description: "Include 6-month outlook (default: false)"
+          schema:
+            type: boolean
+            default: false
+      responses:
+        "200":
+          description: Market overview data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: "#/components/schemas/MarketOverview"
+                  meta:
+                    $ref: "#/components/schemas/ApiMeta"
+
+  /jobs/search:
+    get:
+      tags: [Jobs]
+      summary: Search live job postings with intelligent enrichment
+      description: Returns live job postings aggregated from multiple sources with salary estimates and skill matching.
+      parameters:
+        - name: title
+          in: query
+          required: true
+          description: Job title to search for
+          schema:
+            type: string
+            example: "Software Engineer"
+        - name: location
+          in: query
+          description: Location for job search
+          schema:
+            type: string
+        - name: skills
+          in: query
+          description: Comma-separated skills for filtering
+          schema:
+            type: string
+            example: "React,TypeScript"
+        - name: experience_level
+          in: query
+          description: Experience level filter
+          schema:
+            type: string
+            enum: [entry, mid, senior, lead, principal, executive]
+        - name: remote
+          in: query
+          description: Remote work filter
+          schema:
+            type: boolean
+        - name: salary_min
+          in: query
+          description: Minimum salary filter
+          schema:
+            type: number
+        - name: company_size
+          in: query
+          description: Company size filter
+          schema:
+            type: string
+            enum: [startup, scaleup, enterprise]
+        - name: posted_within
+          in: query
+          description: Posting date filter
+          schema:
+            type: string
+            enum: [24h, 7d, 30d]
+            default: 7d
+        - name: page
+          in: query
+          description: "Page number (default: 1)"
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          description: "Results per page (default: 10)"
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 25
+            default: 10
+      responses:
+        "200":
+          description: Job search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: "#/components/schemas/JobSearchResults"
+                  meta:
+                    $ref: "#/components/schemas/ApiMeta"
+
+  /titles/normalise:
+    get:
+      tags: [Titles]
+      summary: Normalise messy job titles to standard taxonomy
+      description: Converts informal or company-specific job titles to standard industry taxonomy with confidence ratings.
+      parameters:
+        - name: titles
+          in: query
+          required: true
+          description: Comma-separated raw job titles to normalise
+          schema:
+            type: string
+            example: "FE dev,rockstar coder,growth hacker,SWE II"
+      responses:
+        "200":
+          description: Normalised job titles
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: "#/components/schemas/TitleNormalisationResults"
+                  meta:
+                    $ref: "#/components/schemas/ApiMeta"
+
+  /health:
+    get:
+      tags: [Health]
+      summary: Check API health and status
+      description: Returns API health status including database and Redis connections.
+      responses:
+        "200":
+          description: Health status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: "#/components/schemas/HealthStatus"
+                  meta:
+                    $ref: "#/components/schemas/ApiMeta"
+
+components:
+  schemas:
+    ApiMeta:
+      type: object
+      properties:
+        request_id:
+          type: string
+          description: Unique request identifier
+          example: "req_1234567890_abc123def"
+        version:
+          type: string
+          description: API version
+          example: "1.0.0"
+        processing_ms:
+          type: integer
+          description: Request processing time in milliseconds
+          example: 145
+        from_cache:
+          type: boolean
+          description: Whether response was served from cache
+          example: true
+        cache_age_minutes:
+          type: integer
+          description: Age of cached response in minutes (only present if from_cache is true)
+          example: 47
+        data_freshness:
+          type: string
+          description: Last refresh time of data
+          example: "2025-07-14T06:00:00Z"
+
+    SalaryBenchmark:
+      type: object
+      properties:
+        query:
+          type: object
+          properties:
+            job_title_input:
+              type: string
+            job_title_normalised:
+              type: string
+            location:
+              type: string
+            location_type:
+              type: string
+            experience_level:
+              type: string
+            currency:
+              type: string
+        salary:
+          type: object
+          properties:
+            currency:
+              type: string
+            period:
+              type: string
+            base:
+              type: object
+              properties:
+                min:
+                  type: number
+                p25:
+                  type: number
+                median:
+                  type: number
+                mean:
+                  type: number
+                p75:
+                  type: number
+                max:
+                  type: number
+            formatted:
+              type: object
+              properties:
+                min:
+                  type: string
+                p25:
+                  type: string
+                median:
+                  type: string
+                mean:
+                  type: string
+                p75:
+                  type: string
+                max:
+                  type: string
+            hourly_equivalent:
+              type: object
+              properties:
+                median:
+                  type: string
+                p25:
+                  type: string
+                p75:
+                  type: string
+        total_compensation:
+          type: object
+          properties:
+            cash_bonus_typical_pct:
+              type: number
+            cash_bonus_median:
+              type: number
+            equity_typical:
+              type: string
+            total_comp_median:
+              type: number
+            total_comp_p75:
+              type: number
+            note:
+              type: string
+        location_context:
+          type: object
+          properties:
+            cost_of_living_index:
+              type: number
+            salary_vs_national_median_pct:
+              type: number
+            remote_salary_comparison:
+              type: object
+              properties:
+                national_remote_median:
+                  type: number
+                sf_premium_pct:
+                  type: number
+                note:
+                  type: string
+        market_context:
+          type: object
+          properties:
+            demand_level:
+              type: string
+            open_positions_estimate:
+              type: string
+            avg_days_to_fill:
+              type: number
+            candidate_supply:
+              type: string
+            employer_vs_candidate_leverage:
+              type: string
+            yoy_salary_change_pct:
+              type: number
+            salary_trend:
+              type: string
+            commentary:
+              type: string
+        skills_premium:
+          type: array
+          items:
+            type: object
+            properties:
+              skill:
+                type: string
+              premium_pct:
+                type: number
+              median_with_skill:
+                type: number
+        company_type_breakdown:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              median:
+                type: number
+              equity_note:
+                type: string
+        confidence:
+          type: string
+        sample_size_estimate:
+          type: string
+        data_sources:
+          type: array
+          items:
+            type: string
+        methodology_note:
+          type: string
+        last_refreshed:
+          type: string
+
+    SalaryComparison:
+      type: object
+      properties:
+        job_title:
+          type: string
+        experience_level:
+          type: string
+        currency:
+          type: string
+        comparison:
+          type: array
+          items:
+            type: object
+            properties:
+              location:
+                type: string
+              median_salary:
+                type: number
+              formatted:
+                type: string
+              cost_of_living_index:
+                type: number
+              purchasing_power_adjusted:
+                type: number
+              rank:
+                type: integer
+              vs_national_avg_pct:
+                type: number
+              median_salary_local:
+                type: number
+              local_currency:
+                type: string
+              note:
+                type: string
+        insight:
+          type: string
+        highest_nominal:
+          type: string
+        highest_adjusted:
+          type: string
+
+    SalaryEvaluationRequest:
+      type: object
+      required:
+        - job_title
+        - location
+        - offered_salary
+        - currency
+        - experience_years
+        - skills
+        - industry
+        - company_stage
+      properties:
+        job_title:
+          type: string
+        location:
+          type: string
+        offered_salary:
+          type: number
+        currency:
+          type: string
+        experience_years:
+          type: number
+        skills:
+          type: array
+          items:
+            type: string
+        industry:
+          type: string
+        company_stage:
+          type: string
+        offered_equity:
+          type: string
+        offered_bonus_pct:
+          type: number
+
+    SalaryEvaluationResponse:
+      type: object
+      properties:
+        offer_assessment:
+          type: object
+          properties:
+            verdict:
+              type: string
+            percentile:
+              type: number
+            verdict_detail:
+              type: string
+            vs_market:
+              type: object
+              properties:
+                market_p25:
+                  type: number
+                market_median:
+                  type: number
+                market_p75:
+                  type: number
+                your_offer:
+                  type: number
+                gap_to_median:
+                  type: number
+                gap_pct:
+                  type: number
+        negotiation_intelligence:
+          type: object
+          properties:
+            should_negotiate:
+              type: boolean
+            negotiation_strength:
+              type: string
+            recommended_counter:
+              type: number
+            counter_rationale:
+              type: string
+            walkaway_point:
+              type: number
+            negotiation_script_bullets:
+              type: array
+              items:
+                type: string
+            what_else_to_negotiate:
+              type: array
+              items:
+                type: string
+        total_compensation_view:
+          type: object
+          properties:
+            base_salary:
+              type: number
+            expected_bonus:
+              type: number
+            equity_estimated_value:
+              type: number
+            total_comp_estimate:
+              type: number
+            market_total_comp_median:
+              type: number
+            total_comp_gap:
+              type: number
+            note:
+              type: string
+
+    SkillDemand:
+      type: object
+      properties:
+        location:
+          type: string
+        timeframe:
+          type: string
+        skills:
+          type: array
+          items:
+            type: object
+            properties:
+              skill:
+                type: string
+              category:
+                type: string
+              demand_score:
+                type: number
+              demand_label:
+                type: string
+              job_postings_estimate:
+                type: number
+              trend:
+                type: string
+              trend_pct_90d:
+                type: number
+              trend_label:
+                type: string
+              salary_premium_pct:
+                type: number
+              top_job_titles:
+                type: array
+                items:
+                  type: string
+              top_industries:
+                type: array
+                items:
+                  type: string
+              top_companies_hiring:
+                type: array
+                items:
+                  type: string
+              related_skills:
+                type: array
+                items:
+                  type: string
+              learning_resources:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                    url:
+                      type: string
+                    name:
+                      type: string
+              commentary:
+                type: string
+        comparison_insight:
+          type: string
+        ranking:
+          type: array
+          items:
+            type: string
+
+    TrendingSkills:
+      type: object
+      properties:
+        generated_at:
+          type: string
+        timeframe:
+          type: string
+        category:
+          type: string
+        trending_up:
+          type: array
+          items:
+            type: object
+            properties:
+              rank:
+                type: integer
+              skill:
+                type: string
+              category:
+                type: string
+              demand_score:
+                type: number
+              trend_pct_90d:
+                type: number
+              trend_label:
+                type: string
+              avg_salary:
+                type: number
+              why_trending:
+                type: string
+              top_hiring_companies:
+                type: array
+                items:
+                  type: string
+              entry_point:
+                type: string
+        declining:
+          type: array
+          items:
+            type: object
+            properties:
+              rank:
+                type: integer
+              skill:
+                type: string
+              trend_pct_90d:
+                type: number
+              trend_label:
+                type: string
+              why_declining:
+                type: string
+              replacement_skills:
+                type: array
+                items:
+                  type: string
+
+    SkillGapAnalysisRequest:
+      type: object
+      required:
+        - current_skills
+        - target_role
+      properties:
+        current_skills:
+          type: array
+          items:
+            type: string
+        current_role:
+          type: string
+        target_role:
+          type: string
+        target_location:
+          type: string
+        target_timeline_months:
+          type: integer
+        experience_years:
+          type: number
+
+    SkillGapAnalysisResponse:
+      type: object
+      properties:
+        current_role:
+          type: string
+        target_role:
+          type: string
+        overall_readiness:
+          type: integer
+        readiness_label:
+          type: string
+        skill_assessment:
+          type: object
+          properties:
+            already_have:
+              type: array
+              items:
+                type: object
+                properties:
+                  skill:
+                    type: string
+                  relevance_to_target:
+                    type: string
+                  strength:
+                    type: string
+            gaps:
+              type: array
+              items:
+                type: object
+                properties:
+                  skill:
+                    type: string
+                  priority:
+                    type: integer
+                  importance:
+                    type: string
+                  frequency_in_target_jds:
+                    type: number
+                  time_to_learn_estimate:
+                    type: string
+                  why_needed:
+                    type: string
+                  recommended_resources:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                        name:
+                          type: string
+                        platform:
+                          type: string
+                        hours:
+                          type: integer
+                        description:
+                          type: string
+                  salary_impact:
+                    type: string
+        learning_path:
+          type: object
+          properties:
+            total_estimated_weeks:
+              type: integer
+            fits_timeline:
+              type: boolean
+            phases:
+              type: array
+              items:
+                type: object
+                properties:
+                  phase:
+                    type: integer
+                  weeks:
+                    type: string
+                  focus:
+                    type: string
+                  goal:
+                    type: string
+                  milestone:
+                    type: string
+        salary_impact:
+          type: object
+          properties:
+            current_role_london_median:
+              type: number
+            target_role_london_median:
+              type: number
+            salary_increase_estimate:
+              type: string
+            increase_pct:
+              type: number
+        job_market_snapshot:
+          type: object
+          properties:
+            target_role_london_openings:
+              type: number
+            competition_level:
+              type: string
+            time_to_first_interview_estimate:
+              type: string
+
+    RoleIntelligence:
+      type: object
+      properties:
+        role:
+          type: string
+        also_known_as:
+          type: array
+          items:
+            type: string
+        career_level:
+          type: string
+        seniority_tier:
+          type: string
+        role_summary:
+          type: string
+        typical_responsibilities:
+          type: array
+          items:
+            type: string
+        required_skills:
+          type: array
+          items:
+            type: object
+            properties:
+              skill:
+                type: string
+              importance:
+                type: string
+              frequency_in_jds:
+                type: number
+        nice_to_have_skills:
+          type: array
+          items:
+            type: string
+        typical_qualifications:
+          type: array
+          items:
+            type: string
+        what_separates_senior_from_staff:
+          type: string
+        career_paths:
+          type: object
+          properties:
+            typical_progression_to:
+              type: array
+              items:
+                type: object
+                properties:
+                  from:
+                    type: string
+                  to:
+                    type: string
+                  avg_years:
+                    type: number
+                  difficulty:
+                    type: string
+                  key_requirement:
+                    type: string
+            progression_from:
+              type: array
+              items:
+                type: object
+                properties:
+                  from:
+                    type: string
+                  to:
+                    type: string
+                  avg_years:
+                    type: number
+                  exists_at:
+                    type: string
+                  transition_ease:
+                    type: string
+                  note:
+                    type: string
+        market_outlook:
+          type: object
+          properties:
+            demand:
+              type: string
+            outlook:
+              type: string
+            outlook_reason:
+              type: string
+            automation_risk:
+              type: string
+            automation_rationale:
+              type: string
+            remote_friendliness:
+              type: string
+            typical_time_to_fill_days:
+              type: number
+            talent_supply:
+              type: string
+        salary_snapshot:
+          type: object
+          properties:
+            us_median:
+              type: number
+            sf_median:
+              type: number
+            remote_us_median:
+              type: number
+            london_median_gbp:
+              type: number
+        adjacent_roles:
+          type: array
+          items:
+            type: object
+            properties:
+              title:
+                type: string
+              similarity:
+                type: number
+              transition_ease:
+                type: string
+
+    CompanyHiringProfile:
+      type: object
+      properties:
+        company:
+          type: string
+        domain:
+          type: string
+        linkedin_url:
+          type: string
+        hiring_snapshot:
+          type: object
+          properties:
+            open_roles_count:
+              type: integer
+            snapshot_date:
+              type: string
+            hiring_velocity:
+              type: string
+            velocity_trend:
+              type: string
+            yoy_headcount_change_estimate:
+              type: number
+            total_headcount_estimate:
+              type: number
+            headcount_trend:
+              type: string
+        hiring_breakdown:
+          type: object
+          properties:
+            by_department:
+              type: array
+              items:
+                type: object
+                properties:
+                  department:
+                    type: string
+                  count:
+                    type: integer
+                  pct:
+                    type: number
+            by_seniority:
+              type: object
+              properties:
+                senior_and_above_pct:
+                  type: number
+                note:
+                  type: string
+            by_location:
+              type: array
+              items:
+                type: object
+                properties:
+                  location:
+                    type: string
+                  count:
+                    type: integer
+        strategic_signals:
+          type: array
+          items:
+            type: object
+            properties:
+              signal:
+                type: string
+              evidence:
+                type: string
+              implication:
+                type: string
+        tech_stack_signals:
+          type: object
+          properties:
+            inferred_from:
+              type: string
+            confirmed:
+              type: array
+              items:
+                type: string
+            emerging:
+              type: array
+              items:
+                type: string
+            note:
+              type: string
+        talent_intelligence:
+          type: object
+          properties:
+            avg_tenure_estimate:
+              type: string
+            attrition_signal:
+              type: string
+            culture_signals:
+              type: array
+              items:
+                type: string
+            glassdoor_rating:
+              type: number
+            interview_difficulty:
+              type: string
+        top_roles_hiring:
+          type: array
+          items:
+            type: object
+            properties:
+              title:
+                type: string
+              count:
+                type: integer
+
+    CompanyComparison:
+      type: object
+      properties:
+        companies_count:
+          type: integer
+        focus:
+          type: string
+        comparison:
+          type: array
+          items:
+            type: object
+            properties:
+              company:
+                type: string
+              domain:
+                type: string
+              headcount:
+                type: integer
+              open_roles:
+                type: integer
+              hiring_velocity:
+                type: string
+              headcount_trend:
+                type: string
+              tech_stack:
+                type: array
+                items:
+                  type: string
+              engineering_headcount:
+                type: integer
+              avg_tenure:
+                type: string
+              culture_signals:
+                type: array
+                items:
+                  type: string
+              glassdoor_rating:
+                type: number
+
+    MarketOverview:
+      type: object
+      properties:
+        generated_at:
+          type: string
+        sector:
+          type: string
+        location:
+          type: string
+        hiring_activity:
+          type: object
+          properties:
+            overall_level:
+              type: string
+            trend:
+              type: string
+            compared_to_last_month:
+              type: string
+        top_growing_roles:
+          type: array
+          items:
+            type: object
+            properties:
+              role:
+                type: string
+              growth_pct:
+                type: number
+              demand_level:
+                type: string
+        declining_roles:
+          type: array
+          items:
+            type: object
+            properties:
+              role:
+                type: string
+              decline_pct:
+                type: number
+              reason:
+                type: string
+        salary_trends:
+          type: object
+          properties:
+            overall_increase_pct:
+              type: number
+            hot_skills_premium:
+              type: array
+              items:
+                type: object
+                properties:
+                  skill:
+                    type: string
+                  premium_pct:
+                    type: number
+            affordable_locations:
+              type: array
+              items:
+                type: object
+                properties:
+                  city:
+                    type: string
+                  col_index:
+                    type: number
+                  median_salary:
+                    type: number
+        leverage_balance:
+          type: object
+          properties:
+            current:
+              type: string
+            reason:
+              type: string
+        macro_signals:
+          type: array
+          items:
+            type: string
+
+    JobSearchResults:
+      type: object
+      properties:
+        total:
+          type: integer
+        postings:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              title:
+                type: string
+              company:
+                type: string
+              location:
+                type: string
+              salary_range:
+                type: string
+              required_skills:
+                type: array
+                items:
+                  type: string
+              experience_level:
+                type: string
+              remote_type:
+                type: string
+              posted_date:
+                type: string
+              estimated_match_score:
+                type: number
+              apply_url:
+                type: string
+        sources_used:
+          type: array
+          items:
+            type: string
+
+    TitleNormalisationResults:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            type: object
+            properties:
+              input:
+                type: string
+              normalised:
+                type: string
+              confidence:
+                type: string
+              level:
+                type: string
+              note:
+                type: string
+
+    HealthStatus:
+      type: object
+      properties:
+        service:
+          type: string
+        version:
+          type: string
+        status:
+          type: string
+        timestamp:
+          type: string
+        checks:
+          type: object
+          properties:
+            database:
+              type: object
+              properties:
+                status:
+                  type: string
+                response_time_ms:
+                  type: number
+            redis:
+              type: object
+              properties:
+                status:
+                  type: string
+                response_time_ms:
+                  type: number
+
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-RapidAPI-Key
+
+security:
+  - ApiKeyAuth: []

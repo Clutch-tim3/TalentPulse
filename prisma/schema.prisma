@@ -1,0 +1,394 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model SalaryBenchmark {
+  id                  String    @id @default(cuid())
+  job_title_normalised String
+  job_title_raw        String
+  skills              String[]
+  location            String
+  location_type       String
+  experience_level    String
+  industry            String?
+  currency            String    @default("USD")
+  salary_min          Float
+  salary_p25          Float
+  salary_median       Float
+  salary_p75          Float
+  salary_max          Float
+  salary_mean         Float
+  bonus_typical_pct   Float?
+  equity_typical      String?
+  total_comp_median   Float?
+  sample_size_estimate Int?
+  data_sources        String[]
+  confidence          String
+  last_refreshed      DateTime  @default(now())
+  createdAt           DateTime  @default(now())
+
+  @@index([job_title_normalised, location, experience_level])
+  @@index([last_refreshed])
+}
+
+model SkillDemand {
+  id                  String    @id @default(cuid())
+  skill_name          String
+  skill_category      String
+  job_postings_count  Int
+  demand_score        Float
+  demand_trend        String
+  trend_pct_30d       Float?
+  trend_pct_90d       Float?
+  top_job_titles      String[]
+  top_industries      String[]
+  top_companies       String[]
+  avg_salary_premium_pct Float?
+  related_skills      String[]
+  location_filter     String    @default("global")
+  last_refreshed      DateTime  @default(now())
+  createdAt           DateTime  @default(now())
+
+  @@index([skill_name, location_filter])
+  @@unique([skill_name, location_filter])
+}
+
+model RoleIntelligence {
+  id                  String    @id @default(cuid())
+  job_title_normalised String
+  role_summary        String    @db.Text
+  typical_responsibilities Json
+  required_skills     Json
+  nice_to_have_skills Json
+  typical_qualifications Json
+  career_level        String
+  reports_to_typically String[]
+  typical_team_size   String?
+  typical_progression Json
+  adjacent_roles      Json
+  demand_outlook      String
+  demand_outlook_reason String  @db.Text
+  automation_risk     String
+  automation_risk_rationale String @db.Text
+  remote_friendliness String
+  last_refreshed      DateTime  @default(now())
+  createdAt           DateTime  @default(now())
+
+  @@unique([job_title_normalised])
+  @@index([job_title_normalised])
+}
+
+model CompanyHiringProfile {
+  id                  String    @id @default(cuid())
+  company_name        String
+  company_domain      String?
+  linkedin_url        String?
+  open_roles_count    Int?
+  open_roles_snapshot Json?
+  hiring_velocity     String?
+  top_hiring_departments String[]
+  top_hiring_locations   String[]
+  top_skills_in_demand   String[]
+  avg_tenure_years    Float?
+  attrition_signal    String?
+  engineering_headcount_estimate Int?
+  total_headcount_estimate Int?
+  headcount_trend     String?
+  tech_stack_signals  String[]
+  last_refreshed      DateTime  @default(now())
+  createdAt           DateTime  @default(now())
+
+  @@index([company_name])
+  @@unique([company_domain])
+}
+
+model JobPostingsSnapshot {
+  id                  String    @id @default(cuid())
+  search_hash         String    @unique
+  search_params       Json
+  total_found         Int
+  postings            Json
+  sources_used        String[]
+  last_refreshed      DateTime  @default(now())
+  createdAt           DateTime  @default(now())
+
+  @@index([search_hash])
+}
+
+model SkillGapAnalysis {
+  id                  String    @id @default(cuid())
+  input_hash          String    @unique
+  current_skills      String[]
+  target_role         String
+  target_location     String?
+  result              Json
+  createdAt           DateTime  @default(now())
+}
+
+model ApiUsage {
+  id              String    @id @default(cuid())
+  api_key_hash    String
+  tier            String
+  endpoint        String
+  request_weight  Int       @default(1)
+  response_status Int
+  duration_ms     Int
+  from_cache      Boolean   @default(false)
+  createdAt       DateTime  @default(now())
+
+  @@index([api_key_hash, createdAt])
+}
+
+model ResumeAnalysis {
+  id                  String    @id @default(cuid())
+  resume_text         String    @db.Text
+  parsed_data         Json
+  matching_score      Float?
+  matched_roles       String[]
+  missing_skills      String[]
+  recommended_skills  String[]
+  experience_summary  String    @db.Text
+  education_summary   String    @db.Text
+  certifications      String[]
+  skills_extracted    String[]
+  last_refreshed      DateTime  @default(now())
+  createdAt           DateTime  @default(now())
+}
+
+model JobRecommendation {
+  id                  String    @id @default(cuid())
+  user_profile_hash   String
+  recommended_jobs    Json
+  job_matches         Json
+  skills_alignment    Json
+  location_preference String
+  experience_level    String
+  industry_preference String
+  salary_expectation  Float?
+  last_refreshed      DateTime  @default(now())
+  createdAt           DateTime  @default(now())
+
+  @@index([user_profile_hash])
+}
+
+model SalaryNegotiation {
+  id                  String    @id @default(cuid())
+  job_title           String
+  location            String
+  experience_level    String
+  current_salary      Float
+  offer_salary        Float
+  counteroffer_strategy String    @db.Text
+  negotiation_tips    Json
+  market_data         Json
+  salary_range        Json
+  last_refreshed      DateTime  @default(now())
+  createdAt           DateTime  @default(now())
+}
+
+model InterviewPreparation {
+  id                  String    @id @default(cuid())
+  job_title           String
+  company_name        String
+  common_questions    Json
+  technical_questions Json
+  behavioral_questions Json
+  company_research    String    @db.Text
+  role_preparation    String    @db.Text
+  last_refreshed      DateTime  @default(now())
+  createdAt           DateTime  @default(now())
+
+  @@index([job_title, company_name])
+}
+
+model CareerPath {
+  id                  String    @id @default(cuid())
+  current_role        String
+  target_role         String
+  transition_timeline String
+  required_skills     String[]
+  learning_paths      Json
+  experience_required String
+  education_required  String
+  certifications      String[]
+  salary_progression  Json
+  job_market_insights Json
+  last_refreshed      DateTime  @default(now())
+  createdAt           DateTime  @default(now())
+
+  @@index([current_role, target_role])
+}
+
+model LearningPath {
+  id                  String    @id @default(cuid())
+  skill_name          String
+  skill_category      String
+  learning_resources  Json
+  recommended_courses Json
+  practice_exercises  Json
+  certifications     String[]
+  estimated_time_hours Float
+  difficulty_level    String
+  prerequisites       String[]
+  last_refreshed      DateTime  @default(now())
+  createdAt           DateTime  @default(now())
+
+  @@index([skill_name])
+}
+
+model CompanyCulture {
+  id                  String    @id @default(cuid())
+  company_name        String
+  culture_summary     String    @db.Text
+  work_life_balance   String
+  career_growth       String
+  compensation        String
+  management_quality  String
+  company_values      String[]
+  employee_reviews    Json
+  interview_experience Json
+  glassdoor_rating    Float?
+  last_refreshed      DateTime  @default(now())
+  createdAt           DateTime  @default(now())
+
+  @@index([company_name])
+}
+
+model RemoteWorkOpportunity {
+  id                  String    @id @default(cuid())
+  job_title           String
+  company_name        String
+  location            String
+  remote_type         String
+  salary_range        Json
+  job_description     String    @db.Text
+  required_skills     String[]
+  experience_level    String
+  posted_date         DateTime
+  application_deadline DateTime?
+  last_refreshed      DateTime  @default(now())
+  createdAt           DateTime  @default(now())
+
+  @@index([job_title, location])
+}
+
+model FreelanceRate {
+  id                  String    @id @default(cuid())
+  skill_name          String
+  skill_category      String
+  hourly_rate_min     Float
+  hourly_rate_median  Float
+  hourly_rate_max     Float
+  project_rate_min    Float
+  project_rate_median Float
+  project_rate_max    Float
+  location            String
+  experience_level    String
+  demand_score        Float
+  remote_availability Boolean
+  last_refreshed      DateTime  @default(now())
+  createdAt           DateTime  @default(now())
+
+  @@index([skill_name, location, experience_level])
+}
+
+model JobMarketAlert {
+  id                  String    @id @default(cuid())
+  alert_name          String
+  search_criteria     Json
+  user_email          String
+  alert_frequency     String
+  last_sent           DateTime?
+  total_sent          Int       @default(0)
+  is_active           Boolean   @default(true)
+  last_refreshed      DateTime  @default(now())
+  createdAt           DateTime  @default(now())
+
+  @@index([user_email, is_active])
+}
+
+model SalaryPrediction {
+  id                  String    @id @default(cuid())
+  job_title           String
+  location            String
+  experience_level    String
+  education_level     String
+  skills              String[]
+  certifications      String[]
+  predicted_salary    Float
+  salary_range        Json
+  confidence_score    Float
+  market_trends       Json
+  last_refreshed      DateTime  @default(now())
+  createdAt           DateTime  @default(now())
+}
+
+model IndustryTrend {
+  id                  String    @id @default(cuid())
+  industry_name       String
+  trend_summary       String    @db.Text
+  growth_rate         Float
+  emerging_roles      String[]
+  declining_roles     String[]
+  in_demand_skills    String[]
+  technology_adoption Json
+  future_outlook      String    @db.Text
+  last_refreshed      DateTime  @default(now())
+  createdAt           DateTime  @default(now())
+
+  @@index([industry_name])
+}
+
+model DiversityMetric {
+  id                  String    @id @default(cuid())
+  company_name        String
+  gender_diversity    Json
+  ethnic_diversity    Json
+  age_diversity       Json
+  leadership_diversity Json
+  employee_resource_groups String[]
+  inclusion_initiatives Json
+  glassdoor_diversity_rating Float?
+  last_refreshed      DateTime  @default(now())
+  createdAt           DateTime  @default(now())
+
+  @@index([company_name])
+}
+
+model GreenJob {
+  id                  String    @id @default(cuid())
+  job_title           String
+  company_name        String
+  location            String
+  green_category      String
+  sustainability_focus String    @db.Text
+  required_skills     String[]
+  salary_range        Json
+  remote_available    Boolean
+  posted_date         DateTime
+  last_refreshed      DateTime  @default(now())
+  createdAt           DateTime  @default(now())
+
+  @@index([job_title, location, green_category])
+}
+
+model GigEconomyInsight {
+  id                  String    @id @default(cuid())
+  platform_name       String
+  gig_type            String
+  average_earnings    Float
+  demand_trend        String
+  work_hours          String
+  required_skills     String[]
+  location            String
+  barrier_to_entry    String
+  last_refreshed      DateTime  @default(now())
+  createdAt           DateTime  @default(now())
+
+  @@index([platform_name, gig_type, location])
+}

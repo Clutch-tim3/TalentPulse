@@ -1,0 +1,62 @@
+### Health Check
+GET http://localhost:3000/v1/health
+
+### Salary Benchmark
+GET http://localhost:3000/v1/salary/benchmark?job_title=Senior%20Software%20Engineer&location=San%20Francisco,%20CA&experience_level=senior&skills=React,TypeScript,Node.js&industry=fintech&include_equity=true
+
+### Salary Comparison
+GET http://localhost:3000/v1/salary/compare?job_title=Product%20Manager&locations=New%20York,San%20Francisco,Austin,London,Berlin,Remote&experience_level=mid&currency=USD
+
+### Salary Evaluation
+POST http://localhost:3000/v1/salary/evaluate
+Content-Type: application/json
+
+{
+  "job_title": "Senior Product Manager",
+  "location": "Austin, TX",
+  "offered_salary": 145000,
+  "currency": "USD",
+  "experience_years": 6,
+  "skills": ["B2B SaaS", "SQL", "Product Analytics", "Figma"],
+  "industry": "enterprise_saas",
+  "company_stage": "series_c",
+  "offered_equity": "0.05% over 4 years",
+  "offered_bonus_pct": 12
+}
+
+### Skill Demand
+GET http://localhost:3000/v1/skills/demand?skills=React,Vue,Angular,Svelte&location=global&timeframe=90d
+
+### Trending Skills
+GET http://localhost:3000/v1/skills/trending?category=data_ai&location=global&trend_direction=both&limit=10&timeframe=90d
+
+### Skill Gap Analysis
+POST http://localhost:3000/v1/skills/gap-analysis
+Content-Type: application/json
+
+{
+  "current_skills": ["JavaScript", "React", "CSS", "HTML", "Git", "REST APIs"],
+  "current_role": "Frontend Developer",
+  "target_role": "Full Stack Engineer",
+  "target_location": "London, UK",
+  "target_timeline_months": 6,
+  "experience_years": 2
+}
+
+### Role Intelligence
+GET http://localhost:3000/v1/roles/intelligence?job_title=Staff%20Engineer&include_career_paths=true&include_skills=true&include_market=true&location=US
+
+### Company Hiring Profile
+GET http://localhost:3000/v1/company/hiring?company=Stripe&include_open_roles=true&include_tech_stack=true
+
+### Company Comparison
+GET http://localhost:3000/v1/company/compare?companies=Stripe,Adyen,Braintree,Square,Checkout.com&focus=all
+
+### Market Overview
+GET http://localhost:3000/v1/market/overview?sector=tech&location=global&include_forecast=true
+
+### Job Search
+GET http://localhost:3000/v1/jobs/search?title=Software%20Engineer&location=Remote&skills=React,TypeScript&experience_level=senior&remote=true&salary_min=120000&company_size=scaleup&posted_within=7d&page=1&limit=10
+
+### Title Normalization
+GET http://localhost:3000/v1/titles/normalise?titles=FE%20dev,rockstar%20coder,growth%20hacker,SWE%20II
